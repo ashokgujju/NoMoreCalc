@@ -23,6 +23,9 @@ public class MainActivity extends AppCompatActivity {
     private int answer;
     private Vibrator vibrator;
 
+    private final int ADDITION = 0;
+    private final int SUBSTRACTION = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,12 +38,24 @@ public class MainActivity extends AppCompatActivity {
         nextQ();
     }
 
+    private int getOperation() {
+        return random.nextInt(2);
+    }
+
     private void nextQ() {
         int num1 = random.nextInt(100);
         int num2 = random.nextInt(100);
-        answer = num1 + num2;
 
-        mQuestion.setText(num1 + " + " + num2 + " = ?");
+        switch (getOperation()) {
+            case ADDITION:
+                answer = num1 + num2;
+                mQuestion.setText(num1 + " + " + num2 + " = ?");
+                break;
+            case SUBSTRACTION:
+                answer = Math.abs(num1 - num2);
+                mQuestion.setText("| " + num1 + " - " + num2 + " |" + " = ?");
+                break;
+        }
     }
 
     private void setAnswer(char c) {
@@ -115,6 +130,7 @@ public class MainActivity extends AppCompatActivity {
                 vibrator.vibrate(300);
             }
             mAnswer.setText(null);
-        } catch (NumberFormatException e) {}
+        } catch (NumberFormatException e) {
+        }
     }
 }
