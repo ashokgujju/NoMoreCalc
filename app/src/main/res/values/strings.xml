@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">NoMoreCalc</string>
+    <string name="pref_level">difficulty_level</string>
+    <string name="title_choose_difficulty">Choose difficulty level</string>
+    <string-array name="levels">
+        <item>Easy</item>
+        <item>Medium</item>
+        <item>Hard</item>
+    </string-array>
 </resources>

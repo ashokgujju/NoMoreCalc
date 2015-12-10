@@ -1,9 +1,16 @@
 package com.ashokgujju.nomorecalc;
 
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Vibrator;
+import android.preference.PreferenceManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.TextView;
 
 import java.util.Random;
@@ -23,6 +30,14 @@ public class MainActivity extends AppCompatActivity {
     private int answer;
     private Vibrator vibrator;
 
+    private int difficultyLevel;
+    private int levelMaxValue;
+    private int levelMinValue;
+
+    private final int LEVEL_EASY = 0;
+    private final int LEVEL_MEDIUM = 1;
+    private final int LEVEL_HARD = 2;
+
     private final int ADDITION = 0;
     private final int SUBSTRACTION = 1;
 
@@ -35,16 +50,36 @@ public class MainActivity extends AppCompatActivity {
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         random = new Random();
 
+        updateLevelInfo();
         nextQ();
     }
 
-    private int getOperation() {
-        return random.nextInt(2);
+    private void updateLevelInfo() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        difficultyLevel = preferences.getInt(getString(R.string.pref_level), LEVEL_MEDIUM);
+        updateLevelRange();
+    }
+
+    private void updateLevelRange() {
+        switch (difficultyLevel) {
+            case LEVEL_EASY:
+                levelMinValue = 0;
+                levelMaxValue = 10;
+                break;
+            case LEVEL_MEDIUM:
+                levelMinValue = 10;
+                levelMaxValue = 100;
+                break;
+            case LEVEL_HARD:
+                levelMinValue = 100;
+                levelMaxValue = 1000;
+                break;
+        }
     }
 
     private void nextQ() {
-        int num1 = random.nextInt(100);
-        int num2 = random.nextInt(100);
+        int num1 = random.nextInt(levelMaxValue - levelMinValue) + levelMinValue;
+        int num2 = random.nextInt(levelMaxValue - levelMinValue) + levelMinValue;
 
         switch (getOperation()) {
             case ADDITION:
@@ -53,9 +88,13 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case SUBSTRACTION:
                 answer = Math.abs(num1 - num2);
-                mQuestion.setText("| " + num1 + " - " + num2 + " |" + " = ?");
+                mQuestion.setText("|" + num1 + " - " + num2 + "|" + " = ?");
                 break;
         }
+    }
+
+    private int getOperation() {
+        return random.nextInt(2);
     }
 
     private void setAnswer(char c) {
@@ -118,7 +157,6 @@ public class MainActivity extends AppCompatActivity {
             vibrator.vibrate(100);
             mAnswer.setText(null);
         }
-
     }
 
     @OnClick(R.id.keySubmit)
@@ -132,5 +170,44 @@ public class MainActivity extends AppCompatActivity {
             mAnswer.setText(null);
         } catch (NumberFormatException e) {
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.difficulty:
+                chooseDifficultyLevel();
+                break;
+        }
+        return true;
+    }
+
+    private void chooseDifficultyLevel() {
+        AlertDialog dialog;
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.title_choose_difficulty);
+        builder.setSingleChoiceItems(R.array.levels, difficultyLevel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int level) {
+                savePreference(level);
+                updateLevelInfo();
+                dialog.dismiss();
+                nextQ();
+            }
+        });
+        dialog = builder.create();
+        dialog.show();
+    }
+
+    private void savePreference(int level) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        preferences.edit().putInt(getString(R.string.pref_level), level).commit();
     }
 }
